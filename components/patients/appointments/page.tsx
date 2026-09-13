@@ -2,7 +2,7 @@
 import { getAppointments } from "@/data/appointment-repository";
 import { getPatients } from "@/data/patient-repository";
 import { getServices } from "@/data/service-repository";
-import AppointmentsClient from "@/components/patients/appointments/AppointmentsClient";
+import AppointmentsClient from "./AppointmentsClient";
 
 export default function AppointmentsPage() {
   const appointments = getAppointments();

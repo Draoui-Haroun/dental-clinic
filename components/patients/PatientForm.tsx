@@ -6,103 +6,227 @@ type PatientFormProps = {
   onSubmit: (patient: Patient) => void;
 };
 
-export default function PatientForm({ onSubmit }: PatientFormProps) {
-    const [success, setSuccess] = useState(false);
+export default function PatientForm({
+  onSubmit,
+}: PatientFormProps) {
+  const [success, setSuccess] = useState(false);
 
-    return(
-        <form onSubmit={(event) => {
-            event.preventDefault();
-            const formData = new FormData(event.currentTarget);
-            const firstName = formData.get("firstName")?.toString() ?? "";
-            const lastName = formData.get("lastName")?.toString() ?? "";
-            const dateOfBirth = formData.get("dateOfBirth")?.toString() ?? "";
-            const phone = formData.get("phone")?.toString() ?? "";
-            const gender = formData.get("gender")?.toString() ?? "";
-            const address = formData.get("address")?.toString() ?? "";
-            const notes = formData.get("notes")?.toString() ?? "";
-            
-            const patient: Patient = {
-                id: crypto.randomUUID(), firstName, lastName, phone, dateOfBirth, 
-                gender: gender === "male" || gender === "female" ? gender : undefined,
-                address, notes, createdAt: new Date().toISOString(),
-            }
-            onSubmit(patient);
-            event.currentTarget.reset();
-            setSuccess(true);
-            setTimeout(() => {
-                setSuccess(false);
-            }, 3000);
-            console.log(patient)
-        }}>
-            <h2>Add Patient</h2>
-            {success && (
-                <p className="mb-4 text-green-600">
-                    Patient added successfully.
-                </p>
-            )}
-            <div>
-                <label htmlFor="firstName">First Name</label>
-                <input
-                    id="firstName"
-                    type="text"
-                    name="firstName"
-                    required
-                />
-                </div>
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
 
-                <div>
-                <label htmlFor="lastName">Last Name</label>
-                <input
-                    id="lastName"
-                    type="text"
-                    name="lastName"
-                    required
-                />
+        const formData = new FormData(event.currentTarget);
 
-                <label htmlFor="dateOfBirth">Date of Birth</label>
-                <input
-                    id="dateOfBirth"
-                    type="date"
-                    name="dateOfBirth"
-                />
+        const firstName =
+          formData.get("firstName")?.toString() ?? "";
 
-                <label htmlFor="phone">Phone</label>
-                <input
-                    id="phone"
-                    type="tel"
-                    name="phone"
-                    required
-                    pattern="[0-9]{10}"
-                />
-            </div>
+        const lastName =
+          formData.get("lastName")?.toString() ?? "";
 
-            <div>
-                <label htmlFor="gender">Gender</label>
-                <select id="gender" name="gender">
-                    <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                </select>
-            </div>
+        const dateOfBirth =
+          formData.get("dateOfBirth")?.toString() ?? "";
 
-            <div>
-                <label htmlFor="address">Address</label>
-                <input
-                    id="address"
-                    type="text"
-                    name="address"
-                />
-            </div>
+        const phone =
+          formData.get("phone")?.toString() ?? "";
 
-            <div>
-                <label htmlFor="notes">Notes</label>
-                <textarea
-                    id="notes"
-                    name="notes"
-                />
-            </div>
+        const gender =
+          formData.get("gender")?.toString() ?? "";
 
-            <button type="submit">Add Patient</button>
-        </form>
-    )
+        const address =
+          formData.get("address")?.toString() ?? "";
+
+        const notes =
+          formData.get("notes")?.toString() ?? "";
+
+        const patient: Patient = {
+          id: crypto.randomUUID(),
+          firstName,
+          lastName,
+          phone,
+          dateOfBirth,
+          gender:
+            gender === "male" || gender === "female"
+              ? gender
+              : undefined,
+          address,
+          notes,
+          createdAt: new Date().toISOString(),
+        };
+
+        onSubmit(patient);
+
+        event.currentTarget.reset();
+
+        setSuccess(true);
+
+        setTimeout(() => {
+          setSuccess(false);
+        }, 3000);
+      }}
+      className="space-y-6"
+    >
+      
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900">
+          Ajouter un patient
+        </h2>
+
+        <p className="mt-1 text-sm text-gray-500">
+          Renseignez les informations du patient.
+        </p>
+      </div>
+
+      {success && (
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+          <p className="text-sm font-medium text-green-700">
+            Patient ajouté avec succès.
+          </p>
+        </div>
+      )}
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label
+            htmlFor="firstName"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Prénom
+          </label>
+
+          <input
+            id="firstName"
+            type="text"
+            name="firstName"
+            required
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="lastName"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Nom
+          </label>
+
+          <input
+            id="lastName"
+            type="text"
+            name="lastName"
+            required
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label
+            htmlFor="dateOfBirth"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Date de naissance
+          </label>
+
+          <input
+            id="dateOfBirth"
+            type="date"
+            name="dateOfBirth"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="phone"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Téléphone
+          </label>
+
+          <input
+            id="phone"
+            type="tel"
+            name="phone"
+            required
+            pattern="[0-9]{10}"
+            placeholder="0771234567"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+          />
+
+          <p className="mt-1.5 text-xs text-gray-400">
+            10 chiffres
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="gender"
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
+          Sexe
+        </label>
+
+        <select
+          id="gender"
+          name="gender"
+          defaultValue=""
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+        >
+          <option value="" disabled>
+            Sélectionner
+          </option>
+
+          <option value="male">Homme</option>
+
+          <option value="female">Femme</option>
+        </select>
+      </div>
+
+      <div>
+        <label
+          htmlFor="address"
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
+          Adresse
+        </label>
+
+        <input
+          id="address"
+          type="text"
+          name="address"
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="notes"
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
+          Notes
+        </label>
+
+        <textarea
+          id="notes"
+          name="notes"
+          rows={4}
+          placeholder="Informations complémentaires..."
+          className="w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+        />
+      </div>
+
+      <div className="flex justify-end border-t pt-5">
+        <button
+          type="submit"
+          className="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+        >
+          Ajouter le patient
+        </button>
+      </div>
+    </form>
+  );
 }

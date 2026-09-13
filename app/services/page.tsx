@@ -1,8 +1,11 @@
 
-export default function PatientsPage() {
+import { getServices } from "@/data/service-repository";
+import ServicesClient from "@/components/patients/services/ServicesClient";
+
+export default function ServicesPage() {
+  const services = getServices();
+
   return (
-    <main className="p-6">
-      <h1 className="mb-6 text-3xl font-bold">Patients</h1>
-    </main>
+    <ServicesClient initialServices={services} />
   );
 }

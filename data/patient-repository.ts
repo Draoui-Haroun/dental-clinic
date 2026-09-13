@@ -50,7 +50,7 @@ export function getPatients(): Patient[] {
 
 export function createPatient(patient: Patient): void {
     db.prepare(`
-    INSERT INTO patients (
+    INSERT OR IGNORE INTO patients (
       id,
       first_name,
       last_name,

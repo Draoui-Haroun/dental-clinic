@@ -1,11 +1,11 @@
 
-import { patients } from "@/data/patients";
+import { getPatientById } from "@/data/patient-repository";
 import { notFound } from "next/navigation";
 import EditPatientForm from "@/components/patients/EditPatientForm";
 
 export default async function EditPatientPage({params}: {params: Promise<{ id: string }>;}) {
   const { id } = await params;
-  const patient = patients.find((patient) => patient.id === id);
+  const patient = getPatientById(id);
   if(!patient) {notFound(); }
 
   return (
