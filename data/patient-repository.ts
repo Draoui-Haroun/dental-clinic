@@ -1,17 +1,18 @@
 
 import type { Patient } from "@/types/patients";
 import { db } from "@/db/database";
+import { deleteAppointmentsByPatientId } from "@/data/appointment-repository";
 
 type PatientRow = {
-    id: string;
-    first_name: string;
-    last_name: string;
-    phone: string;
-    date_of_birth: string | null;
-    gender: "male" | "female" | null;
-    address: string | null;
-    notes: string | null;
-    created_at: string;
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  date_of_birth: string | null;
+  gender: "male" | "female" | null;
+  address: string | null;
+  notes: string | null;
+  created_at: string;
 };
 
 function mapPatientRow(row: PatientRow): Patient {
@@ -29,15 +30,15 @@ function mapPatientRow(row: PatientRow): Patient {
 }
 
 export function getPatientById(id: string): Patient | undefined {
-    const row = db
-        .prepare("SELECT * FROM patients WHERE id = ?")
-        .get(id) as PatientRow | undefined;
+  const row = db
+    .prepare("SELECT * FROM patients WHERE id = ?")
+    .get(id) as PatientRow | undefined;
 
-    if (!row) {
-        return undefined;
-    }
+  if (!row) {
+    return undefined;
+  }
 
-    return mapPatientRow(row);
+  return mapPatientRow(row);
 }
 
 export function getPatients(): Patient[] {
@@ -49,7 +50,7 @@ export function getPatients(): Patient[] {
 }
 
 export function createPatient(patient: Patient): void {
-    db.prepare(`
+  db.prepare(`
     INSERT OR IGNORE INTO patients (
       id,
       first_name,
@@ -63,16 +64,16 @@ export function createPatient(patient: Patient): void {
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-        patient.id,
-        patient.firstName,
-        patient.lastName,
-        patient.phone,
-        patient.dateOfBirth ?? null,
-        patient.gender ?? null,
-        patient.address ?? null,
-        patient.notes ?? null,
-        patient.createdAt
-    );
+    patient.id,
+    patient.firstName,
+    patient.lastName,
+    patient.phone,
+    patient.dateOfBirth ?? null,
+    patient.gender ?? null,
+    patient.address ?? null,
+    patient.notes ?? null,
+    patient.createdAt
+  );
 }
 
 export function updatePatientById(patient: Patient): boolean {
@@ -104,7 +105,40 @@ export function updatePatientById(patient: Patient): boolean {
     patient.address ?? null,
     patient.notes ?? null,
     patient.id
-    );
+  );
 
   return true;
+}
+
+export function deletePatientById(id: string): boolean {
+  const deletePatient = db.transaction(() => {
+    const patient = db
+      .prepare("SELECT id FROM patients WHERE id = ?")
+      .get(id);
+
+    if (!patient) {
+      return false;
+    }
+
+    db.prepare(`
+      DELETE FROM medical_records
+      WHERE patient_id = ?
+    `).run(id);
+
+    db.prepare(`
+      DELETE FROM appointments
+      WHERE patient_id = ?
+    `).run(id);
+
+    const result = db
+      .prepare(`
+        DELETE FROM patients
+        WHERE id = ?
+      `)
+      .run(id);
+
+    return result.changes > 0;
+  });
+
+  return deletePatient();
 }

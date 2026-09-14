@@ -23,7 +23,9 @@ export default function AppointmentForm({
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
     const appointment: Appointment = {
@@ -47,9 +49,15 @@ export default function AppointmentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 space-y-4 rounded-xl border p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6"
+    >
       <div>
-        <label htmlFor="patient" className="mb-1 block text-sm font-medium">
+        <label
+          htmlFor="patient"
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
           Patient
         </label>
 
@@ -58,9 +66,9 @@ export default function AppointmentForm({
           value={patientId}
           onChange={(event) => setPatientId(event.target.value)}
           required
-          className="w-full rounded-lg border p-3"
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
         >
-          <option value="">Select patient</option>
+          <option value="">Sélectionner un patient</option>
 
           {patients.map((patient) => (
             <option key={patient.id} value={patient.id}>
@@ -71,8 +79,11 @@ export default function AppointmentForm({
       </div>
 
       <div>
-        <label htmlFor="service" className="mb-1 block text-sm font-medium">
-          Service
+        <label
+          htmlFor="service"
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
+          Prestation
         </label>
 
         <select
@@ -80,9 +91,9 @@ export default function AppointmentForm({
           value={serviceId}
           onChange={(event) => setServiceId(event.target.value)}
           required
-          className="w-full rounded-lg border p-3"
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
         >
-          <option value="">Select service</option>
+          <option value="">Sélectionner une prestation</option>
 
           {services.map((service) => (
             <option key={service.id} value={service.id}>
@@ -94,7 +105,10 @@ export default function AppointmentForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="date" className="mb-1 block text-sm font-medium">
+          <label
+            htmlFor="date"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
             Date
           </label>
 
@@ -104,13 +118,16 @@ export default function AppointmentForm({
             value={date}
             onChange={(event) => setDate(event.target.value)}
             required
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
           />
         </div>
 
         <div>
-          <label htmlFor="time" className="mb-1 block text-sm font-medium">
-            Time
+          <label
+            htmlFor="time"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Heure
           </label>
 
           <input
@@ -119,13 +136,16 @@ export default function AppointmentForm({
             value={time}
             onChange={(event) => setTime(event.target.value)}
             required
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="notes" className="mb-1 block text-sm font-medium">
+        <label
+          htmlFor="notes"
+          className="mb-2 block text-sm font-medium text-gray-700"
+        >
           Notes
         </label>
 
@@ -133,17 +153,20 @@ export default function AppointmentForm({
           id="notes"
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
-          className="w-full rounded-lg border p-3"
-          rows={3}
+          rows={4}
+          placeholder="Ajouter une note concernant le rendez-vous..."
+          className="w-full resize-y rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
         />
       </div>
 
-      <button
-        type="submit"
-        className="rounded-lg border px-4 py-2"
-      >
-        Add Appointment
-      </button>
+      <div className="flex flex-wrap gap-3 border-t border-gray-100 pt-2">
+        <button
+          type="submit"
+          className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+        >
+          Ajouter le rendez-vous
+        </button>
+      </div>
     </form>
   );
 }

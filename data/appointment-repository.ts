@@ -113,3 +113,11 @@ export function updateAppointmentStatus(
 
   return true;
 }
+
+export function deleteAppointmentsByPatientId(
+  patientId: string
+): void {
+  db.prepare(
+    "DELETE FROM appointments WHERE patient_id = ?"
+  ).run(patientId);
+}

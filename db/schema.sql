@@ -47,3 +47,8 @@ CREATE TABLE IF NOT EXISTS medical_records (
   FOREIGN KEY (patient_id) REFERENCES patients(id),
   FOREIGN KEY (appointment_id) REFERENCES appointments(id)
 );
+
+CREATE TABLE IF NOT EXISTS app_auth (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  password_hash TEXT NOT NULL
+)

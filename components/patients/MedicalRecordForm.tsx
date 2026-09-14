@@ -1,5 +1,6 @@
 
 "use client";
+
 import { useState } from "react";
 import type { Appointment } from "@/types/appointments";
 import type { MedicalRecord } from "@/types/medical-recordes";
@@ -58,16 +59,16 @@ export default function MedicalRecordForm({
     return (
         <form
             onSubmit={handleSubmit}
-            className="mb-6 space-y-5 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6"
+            className="mb-6 space-y-5 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6"
         >
             <div>
-                <h3 className="text-xl font-semibold text-gray-900">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     {initialRecord
                         ? "Modifier le dossier médical"
                         : "Ajouter un dossier médical"}
                 </h3>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Renseignez les informations de la consultation.
                 </p>
             </div>
@@ -75,7 +76,7 @@ export default function MedicalRecordForm({
             <div>
                 <label
                     htmlFor="medical-appointment"
-                    className="mb-2 block text-sm font-medium text-gray-700"
+                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                     Rendez-vous
                 </label>
@@ -87,7 +88,7 @@ export default function MedicalRecordForm({
                         setAppointmentId(event.target.value)
                     }
                     required
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-gray-500 dark:focus:ring-gray-700"
                 >
                     <option value="" disabled>
                         Sélectionner un rendez-vous
@@ -107,7 +108,7 @@ export default function MedicalRecordForm({
             <div>
                 <label
                     htmlFor="diagnosis"
-                    className="mb-2 block text-sm font-medium text-gray-700"
+                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                     Diagnostic
                 </label>
@@ -120,14 +121,14 @@ export default function MedicalRecordForm({
                         setDiagnosis(event.target.value)
                     }
                     required
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700"
                 />
             </div>
 
             <div>
                 <label
                     htmlFor="treatment"
-                    className="mb-2 block text-sm font-medium text-gray-700"
+                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                     Traitement
                 </label>
@@ -139,14 +140,14 @@ export default function MedicalRecordForm({
                         setTreatment(event.target.value)
                     }
                     rows={3}
-                    className="w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+                    className="w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700"
                 />
             </div>
 
             <div>
                 <label
                     htmlFor="medical-notes"
-                    className="mb-2 block text-sm font-medium text-gray-700"
+                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                     Notes
                 </label>
@@ -158,14 +159,14 @@ export default function MedicalRecordForm({
                         setNotes(event.target.value)
                     }
                     rows={3}
-                    className="w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+                    className="w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700"
                 />
             </div>
 
-            <div className="flex flex-wrap gap-3 border-t pt-5">
+            <div className="flex flex-wrap gap-3 border-t border-gray-200 pt-5 dark:border-gray-800">
                 <button
                     type="submit"
-                    className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+                    className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
                 >
                     {initialRecord
                         ? "Enregistrer les modifications"
@@ -175,7 +176,7 @@ export default function MedicalRecordForm({
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                     Annuler
                 </button>

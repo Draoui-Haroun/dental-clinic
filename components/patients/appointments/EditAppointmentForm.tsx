@@ -49,16 +49,22 @@ export default function EditAppointmentForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mb-6 space-y-4 rounded-xl border p-6"
+      className="space-y-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6"
     >
-      <h2 className="text-xl font-semibold">
-        Edit Appointment
-      </h2>
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900">
+          Modifier le rendez-vous
+        </h2>
+
+        <p className="mt-1 text-sm text-gray-500">
+          Modifiez les informations du rendez-vous.
+        </p>
+      </div>
 
       <div>
         <label
           htmlFor="edit-patient"
-          className="mb-1 block text-sm font-medium"
+          className="mb-2 block text-sm font-medium text-gray-700"
         >
           Patient
         </label>
@@ -68,7 +74,7 @@ export default function EditAppointmentForm({
           value={patientId}
           onChange={(event) => setPatientId(event.target.value)}
           required
-          className="w-full rounded-lg border p-3"
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
         >
           {patients.map((patient) => (
             <option key={patient.id} value={patient.id}>
@@ -81,9 +87,9 @@ export default function EditAppointmentForm({
       <div>
         <label
           htmlFor="edit-service"
-          className="mb-1 block text-sm font-medium"
+          className="mb-2 block text-sm font-medium text-gray-700"
         >
-          Service
+          Prestation
         </label>
 
         <select
@@ -91,7 +97,7 @@ export default function EditAppointmentForm({
           value={serviceId}
           onChange={(event) => setServiceId(event.target.value)}
           required
-          className="w-full rounded-lg border p-3"
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
         >
           {services.map((service) => (
             <option key={service.id} value={service.id}>
@@ -105,7 +111,7 @@ export default function EditAppointmentForm({
         <div>
           <label
             htmlFor="edit-date"
-            className="mb-1 block text-sm font-medium"
+            className="mb-2 block text-sm font-medium text-gray-700"
           >
             Date
           </label>
@@ -116,16 +122,16 @@ export default function EditAppointmentForm({
             value={date}
             onChange={(event) => setDate(event.target.value)}
             required
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
           />
         </div>
 
         <div>
           <label
             htmlFor="edit-time"
-            className="mb-1 block text-sm font-medium"
+            className="mb-2 block text-sm font-medium text-gray-700"
           >
-            Time
+            Heure
           </label>
 
           <input
@@ -134,7 +140,7 @@ export default function EditAppointmentForm({
             value={time}
             onChange={(event) => setTime(event.target.value)}
             required
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
           />
         </div>
       </div>
@@ -142,9 +148,9 @@ export default function EditAppointmentForm({
       <div>
         <label
           htmlFor="edit-status"
-          className="mb-1 block text-sm font-medium"
+          className="mb-2 block text-sm font-medium text-gray-700"
         >
-          Status
+          Statut
         </label>
 
         <select
@@ -155,18 +161,18 @@ export default function EditAppointmentForm({
               event.target.value as Appointment["status"]
             )
           }
-          className="w-full rounded-lg border p-3"
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
         >
-          <option value="scheduled">Scheduled</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="scheduled">Planifié</option>
+          <option value="completed">Terminé</option>
+          <option value="cancelled">Annulé</option>
         </select>
       </div>
 
       <div>
         <label
           htmlFor="edit-notes"
-          className="mb-1 block text-sm font-medium"
+          className="mb-2 block text-sm font-medium text-gray-700"
         >
           Notes
         </label>
@@ -175,25 +181,26 @@ export default function EditAppointmentForm({
           id="edit-notes"
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
-          rows={3}
-          className="w-full rounded-lg border p-3"
+          rows={4}
+          placeholder="Ajouter une note concernant le rendez-vous..."
+          className="w-full resize-y rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
         />
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3 border-t border-gray-100 pt-2">
         <button
           type="submit"
-          className="rounded-lg border px-4 py-2"
+          className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
         >
-          Save Changes
+          Enregistrer les modifications
         </button>
 
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border px-4 py-2"
+          className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
         >
-          Cancel
+          Annuler
         </button>
       </div>
     </form>

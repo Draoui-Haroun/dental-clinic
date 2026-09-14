@@ -1,6 +1,5 @@
 
 "use client";
-
 import { useState } from "react";
 import type { Service } from "@/types/services";
 
@@ -58,20 +57,28 @@ export default function ServiceForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mb-6 space-y-4 rounded-xl border p-6"
+      className="space-y-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6"
     >
-      <h2 className="text-xl font-semibold">
-        {initialService
-          ? "Edit Service"
-          : "Add Service"}
-      </h2>
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          {initialService
+            ? "Modifier la prestation"
+            : "Ajouter une prestation"}
+        </h2>
+
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {initialService
+            ? "Modifiez les informations de la prestation."
+            : "Renseignez les informations de la prestation."}
+        </p>
+      </div>
 
       <div>
         <label
           htmlFor="service-name"
-          className="mb-1 block text-sm font-medium"
+          className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
-          Name
+          Nom
         </label>
 
         <input
@@ -82,14 +89,15 @@ export default function ServiceForm({
             setName(event.target.value)
           }
           required
-          className="w-full rounded-lg border p-3"
+          placeholder="Ex. Détartrage"
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
         />
       </div>
 
       <div>
         <label
           htmlFor="service-description"
-          className="mb-1 block text-sm font-medium"
+          className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Description
         </label>
@@ -100,8 +108,9 @@ export default function ServiceForm({
           onChange={(event) =>
             setDescription(event.target.value)
           }
-          rows={3}
-          className="w-full rounded-lg border p-3"
+          rows={4}
+          placeholder="Décrivez brièvement la prestation..."
+          className="w-full resize-y rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
         />
       </div>
 
@@ -109,9 +118,9 @@ export default function ServiceForm({
         <div>
           <label
             htmlFor="service-duration"
-            className="mb-1 block text-sm font-medium"
+            className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            Duration (minutes)
+            Durée (minutes)
           </label>
 
           <input
@@ -123,48 +132,51 @@ export default function ServiceForm({
               setDuration(event.target.value)
             }
             required
-            className="w-full rounded-lg border p-3"
+            placeholder="30"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
           />
         </div>
 
         <div>
           <label
             htmlFor="service-price"
-            className="mb-1 block text-sm font-medium"
+            className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            Price
+            Prix (DA)
           </label>
 
           <input
             id="service-price"
             type="number"
             min="0"
+            step="1"
             value={price}
             onChange={(event) =>
               setPrice(event.target.value)
             }
             required
-            className="w-full rounded-lg border p-3"
+            placeholder="2000"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-gray-600 dark:focus:ring-gray-700"
           />
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3 border-t border-gray-100 pt-2 dark:border-gray-800">
         <button
           type="submit"
-          className="rounded-lg border px-4 py-2"
+          className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
         >
           {initialService
-            ? "Save Changes"
-            : "Add Service"}
+            ? "Enregistrer les modifications"
+            : "Ajouter la prestation"}
         </button>
 
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border px-4 py-2"
+          className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
         >
-          Cancel
+          Annuler
         </button>
       </div>
     </form>
