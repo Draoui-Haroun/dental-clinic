@@ -9,7 +9,7 @@ import type { MedicalRecord } from "@/types/medical-recordes";
 import MedicalRecordForm from "@/components/patients/MedicalRecordForm";
 import { addMedicalRecord, editMedicalRecord, deleteMedicalRecord } from "@/app/(app)/patients/[id]/medical-record-actions";
 import { useRouter } from "next/navigation";
-import { deletePatient } from "@/app/(app)/patients/action";
+import { deletePatient } from "@/app/(app)/patients/actions";
 
 type PatientDetailsClientProps = {
   patient: Patient;

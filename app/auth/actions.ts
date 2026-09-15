@@ -1,6 +1,6 @@
 
 "use server";
-
+import { redirect } from "next/navigation";
 import { createPassword, hasPassword, verifyPassword } from "@/data/auth-repository";
 import { createSession, deleteSession } from "@/lib/auth";
 
@@ -47,13 +47,8 @@ export async function login(
       message: "Mot de passe incorrect.",
     };
   }
-
   await createSession();
-
-  return {
-    success: true,
-    message: "Connexion réussie.",
-  };
+  redirect("/");
 }
 
 export async function logout() {

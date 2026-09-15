@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import PatientForm from "@/components/patients/PatientForm";
-import { addPatient } from "@/app/(app)/patients/action";
+import { addPatient } from "@/app/(app)/patients/actions";
 import type { Patient } from "@/types/patients";
 
 type PatientsClientProps = {

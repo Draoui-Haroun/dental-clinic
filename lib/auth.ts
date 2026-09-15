@@ -10,7 +10,7 @@ export async function createSession() {
   cookieStore.set(SESSION_COOKIE, "authenticated", {
     httpOnly: true,
     sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
     path: "/",
   });
 }
@@ -18,7 +18,9 @@ export async function createSession() {
 export async function hasSession(): Promise<boolean> {
   const cookieStore = await cookies();
 
-  return cookieStore.get(SESSION_COOKIE)?.value === "authenticated";
+  const session = cookieStore.get(SESSION_COOKIE)?.value;
+
+  return session === "authenticated";
 }
 
 export async function deleteSession() {

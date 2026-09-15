@@ -7,9 +7,21 @@ const SESSION_COOKIE = "dental_clinic_session";
 export function proxy(request: NextRequest) {
   const session = request.cookies.get(SESSION_COOKIE)?.value;
   const pathname = request.nextUrl.pathname;
+  console.log(
+    "PROXY:",
+    pathname,
+    "SESSION:",
+    session
+  );
+
+  // /entry decides where the user should go.
+  if (pathname === "/entry") {
+    return NextResponse.next();
+  }
 
   const isPublicRoute =
-    pathname === "/login" || pathname === "/setup";
+    pathname === "/login" ||
+    pathname === "/setup";
 
   if (!session && !isPublicRoute) {
     return NextResponse.redirect(

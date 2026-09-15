@@ -1,6 +1,5 @@
 
 import Link from "next/link";
-
 import { getPatients } from "@/data/patient-repository";
 import { getAppointments } from "@/data/appointment-repository";
 import { getServices } from "@/data/service-repository";

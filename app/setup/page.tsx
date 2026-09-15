@@ -2,7 +2,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { setupPassword } from "../auth/action";
+import { setupPassword } from "../auth/actions";
 import { useRouter } from "next/navigation";
 
 const initialState = {

@@ -3,9 +3,20 @@ import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 
-const dbPath = path.join(process.cwd(), "db", "database.db");
+const dbPath =
+    process.env.DENTAL_CLINIC_DB_PATH ??
+    path.join(process.cwd(), "db", "database.db");
+
+const dbDirectory = path.dirname(dbPath);
+
+if (!fs.existsSync(dbDirectory)) {
+    fs.mkdirSync(dbDirectory, { recursive: true });
+}
+
 export const db = new Database(dbPath);
+
 db.pragma("foreign_keys = ON");
+
 const schemaPath = path.join(process.cwd(), "db", "schema.sql");
 const schema = fs.readFileSync(schemaPath, "utf-8");
 

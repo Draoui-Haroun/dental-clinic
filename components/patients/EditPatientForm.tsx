@@ -2,7 +2,7 @@
 
 "use client";
 import type { Patient } from "@/types/patients";
-import { updatePatient } from "@/app/(app)/patients/[id]/edit/action";
+import { updatePatient } from "@/app/(app)/patients/[id]/edit/actions";
 import { useActionState } from "react";
 
 type EditPatientFormProps = {

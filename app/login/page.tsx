@@ -2,8 +2,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { login } from "../auth/action";
-import { useRouter } from "next/navigation";
+import { login } from "../auth/actions";
 
 const initialState = {
     success: false,
@@ -22,18 +21,10 @@ export default function LoginPage() {
                 };
             }
 
-            const result = await login(password);
-
-            if (result.success) {
-                router.push("/");
-            }
-
-            return result;
+            return await login(password);
         },
         initialState
     );
-
-    const router = useRouter();
 
     return (
         <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6 dark:bg-gray-950">

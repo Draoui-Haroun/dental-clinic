@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "@/app/ThemeProvider";
-import { logout } from "@/app/auth/action";
+import { logout } from "@/app/auth/actions";
 
 const navigation = [
   {
