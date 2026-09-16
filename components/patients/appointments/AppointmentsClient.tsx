@@ -10,7 +10,20 @@ import {
   addAppointment,
   editAppointment,
   changeAppointmentStatus,
+  deleteAppointment,
 } from "@/app/(app)/appointments/actions";
+
+function isAppointmentLate(appointment: Appointment) {
+  if (appointment.status !== "scheduled") {
+    return false;
+  }
+
+  const appointmentDateTime = new Date(
+    `${appointment.date}T${appointment.time}`
+  );
+
+  return appointmentDateTime < new Date();
+}
 
 type AppointmentsClientProps = {
   initialAppointments: Appointment[];
@@ -27,6 +40,9 @@ export default function AppointmentsClient({
     useState(initialAppointments);
 
   const [showForm, setShowForm] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showUpcoming, setShowUpcoming] = useState(false);
+  const [showAllAppointments, setShowAllAppointments] = useState(false);
 
   const [editingAppointmentId, setEditingAppointmentId] =
     useState<string | null>(null);
@@ -80,8 +96,34 @@ export default function AppointmentsClient({
     );
   }
 
-  function getStatusLabel(status: Appointment["status"]) {
-    switch (status) {
+  async function handleDeleteAppointment(id: string) {
+    const confirmed = window.confirm(
+      "Êtes-vous sûr de vouloir supprimer ce rendez-vous ?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const deleted = await deleteAppointment(id);
+
+    if (!deleted) {
+      return;
+    }
+
+    setAppointments((currentAppointments) =>
+      currentAppointments.filter(
+        (appointment) => appointment.id !== id
+      )
+    );
+  }
+
+  function getStatusLabel(appointment: Appointment) {
+    if (isAppointmentLate(appointment)) {
+      return "En retard";
+    }
+
+    switch (appointment.status) {
       case "completed":
         return "Terminé";
       case "cancelled":
@@ -91,8 +133,12 @@ export default function AppointmentsClient({
     }
   }
 
-  function getStatusClass(status: Appointment["status"]) {
-    switch (status) {
+  function getStatusClass(appointment: Appointment) {
+    if (isAppointmentLate(appointment)) {
+      return "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800";
+    }
+
+    switch (appointment.status) {
       case "completed":
         return "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800";
 
@@ -153,9 +199,214 @@ export default function AppointmentsClient({
     return dateTimeA - dateTimeB;
   });
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const todayAppointments = filteredAppointments.filter(
+    (appointment) =>
+      appointment.date === today
+  );
+
+  const upcomingAppointments = filteredAppointments.filter(
+    (appointment) =>
+      appointment.date > today &&
+      appointment.status === "scheduled"
+  );
+
+  const lateAppointments = filteredAppointments.filter(
+    (appointment) =>
+      appointment.date < today &&
+      appointment.status === "scheduled"
+  );
+
+  const historyAppointments = filteredAppointments.filter(
+    (appointment) =>
+      appointment.date < today &&
+      (
+        appointment.status === "completed" ||
+        appointment.status === "cancelled"
+      )
+  );
+
   function formatDate(date: string) {
     return new Intl.DateTimeFormat("fr-FR").format(
       new Date(date)
+    );
+  }
+
+  const allAppointments = [...filteredAppointments].sort((a, b) => {
+    const dateTimeA = new Date(
+      `${a.date}T${a.time}`
+    ).getTime();
+
+    const dateTimeB = new Date(
+      `${b.date}T${b.time}`
+    ).getTime();
+
+    return dateTimeA - dateTimeB;
+  });
+
+  function renderAppointment(appointment: Appointment) {
+    const patient = patients.find(
+      (patient) => patient.id === appointment.patientId
+    );
+
+    const service = services.find(
+      (service) => service.id === appointment.serviceId
+    );
+
+    if (editingAppointmentId === appointment.id) {
+      return (
+        <EditAppointmentForm
+          key={appointment.id}
+          appointment={appointment}
+          patients={patients}
+          services={services}
+          onSubmit={handleEditAppointment}
+          onCancel={() => setEditingAppointmentId(null)}
+        />
+      );
+    }
+
+    return (
+      <article
+        key={appointment.id}
+        className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 sm:p-6"
+      >
+        {/* Top */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 font-semibold text-gray-700">
+              {patient
+                ? `${patient.firstName.charAt(0)}${patient.lastName.charAt(0)}`
+                : "?"}
+            </div>
+
+            <div>
+              <h2 className="font-semibold text-gray-900 dark:text-white">
+                {patient
+                  ? `${patient.firstName} ${patient.lastName}`
+                  : "Patient inconnu"}
+              </h2>
+
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {service?.name ?? "Prestation inconnue"}
+              </p>
+            </div>
+          </div>
+
+          <span
+            className={`w-fit rounded-full border px-3 py-1 text-sm font-medium ${getStatusClass(
+              appointment
+            )}`}
+          >
+            {getStatusLabel(appointment)}
+          </span>
+        </div>
+
+        {/* Appointment information */}
+        <div className="mt-5 grid gap-3 border-t border-gray-100 pt-5 dark:border-gray-800 sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+              Date
+            </p>
+
+            <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
+              {formatDate(appointment.date)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+              Heure
+            </p>
+
+            <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
+              {appointment.time}
+            </p>
+          </div>
+        </div>
+
+        {/* Notes */}
+        {appointment.notes && (
+          <div className="mt-5 rounded-xl bg-gray-50 p-4 dark:bg-gray-800">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Notes
+            </p>
+
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              {appointment.notes}
+            </p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="mt-5 flex flex-wrap gap-2 border-t border-gray-100 pt-5 dark:border-gray-800">
+          <button
+            type="button"
+            onClick={() =>
+              setEditingAppointmentId(appointment.id)
+            }
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            Modifier
+          </button>
+
+          {appointment.status === "scheduled" && (
+            <>
+              <button
+                type="button"
+                onClick={() =>
+                  handleStatusChange(
+                    appointment.id,
+                    "completed"
+                  )
+                }
+                className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-100 dark:border-green-800 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900"
+              >
+                Terminer
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleStatusChange(
+                    appointment.id,
+                    "cancelled"
+                  )
+                }
+                className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-950 dark:text-red-400 dark:hover:bg-red-900"
+              >
+                Annuler
+              </button>
+            </>
+          )}
+
+          {appointment.status === "cancelled" && (
+            <button
+              type="button"
+              onClick={() =>
+                handleStatusChange(
+                  appointment.id,
+                  "scheduled"
+                )
+              }
+              className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900"
+            >
+              Restaurer
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() =>
+              handleDeleteAppointment(appointment.id)
+            }
+            className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+          >
+            Supprimer
+          </button>
+        </div>
+      </article>
     );
   }
 
@@ -330,168 +581,164 @@ export default function AppointmentsClient({
           </p>
         </div>
       ) : (
-        <section className="space-y-4">
-          {filteredAppointments.map((appointment) => {
-            const patient = patients.find(
-              (patient) =>
-                patient.id === appointment.patientId
-            );
+        <div className="space-y-8">
+          {/* Aujourd'hui */}
+          {todayAppointments.length > 0 && (
+            <section>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Aujourd'hui
+                </h2>
 
-            const service = services.find(
-              (service) =>
-                service.id === appointment.serviceId
-            );
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {todayAppointments.length} rendez-vous aujourd'hui
+                </p>
+              </div>
 
-            if (editingAppointmentId === appointment.id) {
-              return (
-                <EditAppointmentForm
-                  key={appointment.id}
-                  appointment={appointment}
-                  patients={patients}
-                  services={services}
-                  onSubmit={handleEditAppointment}
-                  onCancel={() =>
-                    setEditingAppointmentId(null)
+              <div className="space-y-4">
+                {todayAppointments.map(renderAppointment)}
+              </div>
+            </section>
+          )}
+
+          {/* À venir */}
+          {/* À venir */}
+          {upcomingAppointments.length > 0 && (
+            <section>
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    À venir
+                  </h2>
+
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {upcomingAppointments.length} rendez-vous à venir
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowUpcoming((current) => !current)
                   }
-                />
-              );
-            }
+                  className="w-fit rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  {showUpcoming
+                    ? "Masquer les prochains rendez-vous"
+                    : "Afficher les prochains rendez-vous"}
+                </button>
+              </div>
 
-            return (
-              <article
-                key={appointment.id}
-                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 sm:p-6"
-              >
-                {/* Top */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 font-semibold text-gray-700">
-                      {patient
-                        ? `${patient.firstName.charAt(0)}${patient.lastName.charAt(0)}`
-                        : "?"}
-                    </div>
+              {showUpcoming && (
+                <div className="space-y-4">
+                  {upcomingAppointments.map(renderAppointment)}
+                </div>
+              )}
+            </section>
+          )}
 
-                    <div>
-                      <h2 className="font-semibold text-gray-900 dark:text-white">
-                        {patient
-                          ? `${patient.firstName} ${patient.lastName}`
-                          : "Patient inconnu"}
-                      </h2>
+          {/* En retard */}
+          {lateAppointments.length > 0 && (
+            <section>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  En retard
+                </h2>
 
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        {service?.name ?? "Prestation inconnue"}
-                      </p>
-                    </div>
-                  </div>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {lateAppointments.length} rendez-vous en retard
+                </p>
+              </div>
 
-                  <span
-                    className={`w-fit rounded-full border px-3 py-1 text-sm font-medium ${getStatusClass(
-                      appointment.status
-                    )}`}
-                  >
-                    {getStatusLabel(appointment.status)}
-                  </span>
+              <div className="space-y-4">
+                {lateAppointments.map(renderAppointment)}
+              </div>
+            </section>
+          )}
+
+          {/* Historique */}
+          {historyAppointments.length > 0 && (
+            <section>
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Historique
+                  </h2>
+
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {historyAppointments.length} ancien
+                    {historyAppointments.length > 1 ? "s" : ""} rendez-vous
+                  </p>
                 </div>
 
-                {/* Appointment information */}
-                <div className="mt-5 grid gap-3 border-t border-gray-100 pt-5 dark:border-gray-800 sm:grid-cols-2">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                      Date
-                    </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowHistory((current) => !current)
+                  }
+                  className="w-fit rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  {showHistory
+                    ? "Masquer l'historique"
+                    : "Afficher l'historique"}
+                </button>
+              </div>
 
-                    <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-                      {formatDate(appointment.date)}
-                    </p>
-                  </div>
+              {showHistory && (
+                <div className="space-y-4">
+                  {historyAppointments.map(renderAppointment)}
+                </div>
+              )}
+            </section>
+          )}
 
-                  <div>
-                    <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-                      Heure
-                    </p>
+          {/* Tous les rendez-vous */}
+          {allAppointments.length > 0 && (
+            <section>
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Tous les rendez-vous
+                  </h2>
 
-                    <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-                      {appointment.time}
-                    </p>
-                  </div>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {allAppointments.length} rendez-vous
+                  </p>
                 </div>
 
-                {/* Notes */}
-                {appointment.notes && (
-                  <div className="mt-5 rounded-xl bg-gray-50 p-4 dark:bg-gray-800">
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                      Notes
-                    </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowAllAppointments((current) => !current)
+                  }
+                  className="w-fit rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  {showAllAppointments
+                    ? "Masquer tous les rendez-vous"
+                    : "Afficher tous les rendez-vous"}
+                </button>
+              </div>
 
-                    <p className="mt-1 text-sm text-gray-600">
-                      {appointment.notes}
-                    </p>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="mt-5 flex flex-wrap gap-2 border-t border-gray-100 pt-5 dark:border-gray-800">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setEditingAppointmentId(
-                        appointment.id
-                      )
-                    }
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                  >
-                    Modifier
-                  </button>
-
-                  {appointment.status === "scheduled" && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleStatusChange(
-                            appointment.id,
-                            "completed"
-                          )
-                        }
-                        className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-100 dark:border-green-800 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900"
-                      >
-                        Terminer
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleStatusChange(
-                            appointment.id,
-                            "cancelled"
-                          )
-                        }
-                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-950 dark:text-red-400 dark:hover:bg-red-900"
-                      >
-                        Annuler
-                      </button>
-                    </>
-                  )}
-
-                  {appointment.status === "cancelled" && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleStatusChange(
-                          appointment.id,
-                          "scheduled"
-                        )
-                      }
-                      className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900"
-                    >
-                      Restaurer
-                    </button>
-                  )}
+              {showAllAppointments && (
+                <div className="space-y-4">
+                  {allAppointments.map(renderAppointment)}
                 </div>
-              </article>
-            );
-          })}
-        </section>
+              )}
+            </section>
+          )}
+
+          {/* No appointments in any section */}
+          {todayAppointments.length === 0 &&
+            upcomingAppointments.length === 0 &&
+            lateAppointments.length === 0 &&
+            historyAppointments.length === 0 && (
+              <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <p className="font-medium text-gray-700 dark:text-gray-200">
+                  Aucun rendez-vous à afficher.
+                </p>
+              </div>
+            )}
+        </div>
       )}
     </main>
   );

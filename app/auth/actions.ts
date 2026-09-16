@@ -1,7 +1,7 @@
 
 "use server";
 import { redirect } from "next/navigation";
-import { createPassword, hasPassword, verifyPassword } from "@/data/auth-repository";
+import { changePassword, createPassword, hasPassword, verifyPassword } from "@/data/auth-repository";
 import { createSession, deleteSession } from "@/lib/auth";
 
 export async function setupPassword(
@@ -53,4 +53,44 @@ export async function login(
 
 export async function logout() {
   await deleteSession();
+}
+
+export async function changePasswordAction(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; message: string }> {
+  if (!hasPassword()) {
+    return {
+      success: false,
+      message: "Aucun mot de passe n'est configuré.",
+    };
+  }
+
+  if (newPassword.length < 8) {
+    return {
+      success: false,
+      message: "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+    };
+  }
+
+  if (currentPassword === newPassword) {
+    return {
+      success: false,
+      message: "Le nouveau mot de passe doit être différent de l'ancien.",
+    };
+  }
+
+  const changed = changePassword(currentPassword, newPassword);
+
+  if (!changed) {
+    return {
+      success: false,
+      message: "Le mot de passe actuel est incorrect.",
+    };
+  }
+
+  return {
+    success: true,
+    message: "Mot de passe modifié avec succès.",
+  };
 }

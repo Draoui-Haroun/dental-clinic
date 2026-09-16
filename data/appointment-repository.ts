@@ -121,3 +121,21 @@ export function deleteAppointmentsByPatientId(
     "DELETE FROM appointments WHERE patient_id = ?"
   ).run(patientId);
 }
+
+export function deleteAppointmentById(
+  id: string
+): boolean {
+  const result = db
+    .prepare("SELECT id FROM appointments WHERE id = ?")
+    .get(id);
+
+  if (!result) {
+    return false;
+  }
+
+  db.prepare(
+    "DELETE FROM appointments WHERE id = ?"
+  ).run(id);
+
+  return true;
+}

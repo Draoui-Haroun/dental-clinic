@@ -28,3 +28,24 @@ export function verifyPassword(password: string): boolean {
 
   return bcrypt.compareSync(password, row.password_hash);
 }
+
+export function changePassword(
+  currentPassword: string,
+  newPassword: string
+): boolean {
+  const valid = verifyPassword(currentPassword);
+
+  if (!valid) {
+    return false;
+  }
+
+  const passwordHash = bcrypt.hashSync(newPassword, 12);
+
+  db.prepare(`
+    UPDATE app_auth
+    SET password_hash = ?
+    WHERE id = 1
+  `).run(passwordHash);
+
+  return true;
+}

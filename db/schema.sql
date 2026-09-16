@@ -11,6 +11,15 @@ CREATE TABLE IF NOT EXISTS patients (
   created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS patient_notes (
+  id TEXT PRIMARY KEY,
+  patient_id TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT,
+  FOREIGN KEY (patient_id) REFERENCES patients(id)
+);
+
 CREATE TABLE IF NOT EXISTS services (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -43,7 +52,6 @@ CREATE TABLE IF NOT EXISTS medical_records (
   treatment TEXT,
   notes TEXT,
   created_at TEXT NOT NULL,
-
   FOREIGN KEY (patient_id) REFERENCES patients(id),
   FOREIGN KEY (appointment_id) REFERENCES appointments(id)
 );
@@ -51,4 +59,4 @@ CREATE TABLE IF NOT EXISTS medical_records (
 CREATE TABLE IF NOT EXISTS app_auth (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   password_hash TEXT NOT NULL
-)
+);

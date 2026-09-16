@@ -109,7 +109,7 @@ export default function Sidebar() {
         </nav>
 
         <div className="border-t border-gray-200 p-4 dark:border-gray-800">
-          <div className="rounded-xl bg-gray-50 p-3 dark:bg-gray-900">
+          <div className="rounded-xl bg-gray-50 p-3 pb-2 dark:bg-gray-900">
             <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
               Cabinet dentaire
             </p>
@@ -117,6 +117,13 @@ export default function Sidebar() {
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Gestion locale
             </p>
+
+            <Link
+              href="/settings/password"
+              className="mt-3 block w-full rounded-lg border border-gray-200 px-3 py-2 text-center text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+            >
+              Changer le mot de passe
+            </Link>
 
             <button
               type="button"

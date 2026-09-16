@@ -9,13 +9,18 @@ import type { MedicalRecord } from "@/types/medical-recordes";
 import MedicalRecordForm from "@/components/patients/MedicalRecordForm";
 import { addMedicalRecord, editMedicalRecord, deleteMedicalRecord } from "@/app/(app)/patients/[id]/medical-record-actions";
 import { useRouter } from "next/navigation";
-import { deletePatient } from "@/app/(app)/patients/actions";
+import { deletePatient, addPatientNote, editPatientNote, removePatientNote } from "@/app/(app)/patients/actions";
+import type { PatientNote } from "@/data/patient-note-repository";
+import {
+
+} from "@/app/(app)/patients/actions";
 
 type PatientDetailsClientProps = {
   patient: Patient;
   initialMedicalRecords: MedicalRecord[];
   appointments: Appointment[];
   services: Service[];
+  notes: PatientNote[];
 };
 
 export default function PatientDetailsClient({
@@ -23,6 +28,7 @@ export default function PatientDetailsClient({
   initialMedicalRecords,
   appointments,
   services,
+  notes,
 }: PatientDetailsClientProps) {
   const [medicalRecords, setMedicalRecords] = useState(
     initialMedicalRecords
@@ -33,6 +39,17 @@ export default function PatientDetailsClient({
 
   const [editingRecordId, setEditingRecordId] =
     useState<string | null>(null);
+
+  const [patientNotes, setPatientNotes] =
+    useState<PatientNote[]>(notes);
+
+  const [newNote, setNewNote] = useState("");
+
+  const [editingNoteId, setEditingNoteId] =
+    useState<string | null>(null);
+
+  const [editingNoteContent, setEditingNoteContent] =
+    useState("");
 
   async function handleAddRecord(
     record: MedicalRecord
@@ -128,6 +145,88 @@ export default function PatientDetailsClient({
 
     await deletePatient(patient.id);
     router.push("/patients");
+  }
+
+  async function handleAddNote() {
+    const content = newNote.trim();
+
+    if (!content) {
+      return;
+    }
+
+    const note: PatientNote = {
+      id: crypto.randomUUID(),
+      patientId: patient.id,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    await addPatientNote(note);
+
+    setPatientNotes((currentNotes) => [
+      note,
+      ...currentNotes,
+    ]);
+
+    setNewNote("");
+  }
+
+  async function handleEditNote(
+    id: string
+  ) {
+    const content = editingNoteContent.trim();
+
+    if (!content) {
+      return;
+    }
+
+    const updated = await editPatientNote(
+      id,
+      content
+    );
+
+    if (!updated) {
+      return;
+    }
+
+    setPatientNotes((currentNotes) =>
+      currentNotes.map((note) =>
+        note.id === id
+          ? {
+            ...note,
+            content,
+            updatedAt: new Date().toISOString(),
+          }
+          : note
+      )
+    );
+
+    setEditingNoteId(null);
+    setEditingNoteContent("");
+  }
+
+  async function handleDeleteNote(
+    id: string
+  ) {
+    const confirmed = window.confirm(
+      "Êtes-vous sûr de vouloir supprimer cette note ?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const deleted = await removePatientNote(id);
+
+    if (!deleted) {
+      return;
+    }
+
+    setPatientNotes((currentNotes) =>
+      currentNotes.filter(
+        (note) => note.id !== id
+      )
+    );
   }
 
   return (
@@ -260,17 +359,155 @@ export default function PatientDetailsClient({
         </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6">
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Notes
+      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Notes du patient
           </h2>
+
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Ajoutez des observations ou des informations importantes
+            concernant ce patient.
+          </p>
         </div>
 
-        <div className="rounded-xl bg-gray-50 p-4 dark:bg-gray-800">
-          <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-300">
-            {patient.notes || "Aucune note pour ce patient."}
-          </p>
+        {/* Add new note */}
+        <div className="space-y-3">
+          <textarea
+            value={newNote}
+            onChange={(event) =>
+              setNewNote(event.target.value)
+            }
+            placeholder="Écrire une nouvelle note..."
+            rows={4}
+            className="w-full resize-y rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700"
+          />
+
+          <button
+            type="button"
+            onClick={handleAddNote}
+            disabled={!newNote.trim()}
+            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
+          >
+            Ajouter la note
+          </button>
+        </div>
+
+        {/* Notes history */}
+        <div className="mt-8 space-y-4">
+          {patientNotes.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center dark:border-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Aucune note pour ce patient.
+              </p>
+            </div>
+          ) : (
+            patientNotes.map((note) => {
+              const isEditing =
+                editingNoteId === note.id;
+
+              return (
+                <article
+                  key={note.id}
+                  className="rounded-xl border border-gray-200 p-5 dark:border-gray-800"
+                >
+                  {/* Date */}
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      {new Date(
+                        note.createdAt
+                      ).toLocaleString("fr-FR", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </p>
+
+                    {note.updatedAt && (
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
+                        Modifiée le{" "}
+                        {new Date(
+                          note.updatedAt
+                        ).toLocaleString("fr-FR", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  {isEditing ? (
+                    <div className="mt-4 space-y-3">
+                      <textarea
+                        value={editingNoteContent}
+                        onChange={(event) =>
+                          setEditingNoteContent(
+                            event.target.value
+                          )
+                        }
+                        rows={4}
+                        className="w-full resize-y rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-gray-500 dark:focus:ring-gray-700"
+                      />
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleEditNote(note.id)
+                          }
+                          className="rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
+                        >
+                          Enregistrer
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingNoteId(null);
+                            setEditingNoteContent("");
+                          }}
+                          className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-300">
+                        {note.content}
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingNoteId(note.id);
+                            setEditingNoteContent(
+                              note.content
+                            );
+                          }}
+                          className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                        >
+                          Modifier
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDeleteNote(note.id)
+                          }
+                          className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </article>
+              );
+            })
+          )}
         </div>
       </section>
 

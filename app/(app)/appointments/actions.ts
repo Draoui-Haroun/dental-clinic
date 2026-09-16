@@ -5,6 +5,7 @@ import {
   createAppointment,
   updateAppointmentById,
   updateAppointmentStatus,
+  deleteAppointmentById,
 } from "@/data/appointment-repository";
 import { requireSession } from "@/lib/auth";
 
@@ -23,4 +24,10 @@ export async function editAppointment(appointment: Appointment) {
 export async function changeAppointmentStatus(id: string, status: Appointment["status"]) {
   await requireSession();
   return updateAppointmentStatus(id, status);
+}
+
+export async function deleteAppointment(id: string) {
+  await requireSession();
+
+  return deleteAppointmentById(id);
 }
