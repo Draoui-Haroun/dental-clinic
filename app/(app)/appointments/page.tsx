@@ -1,4 +1,5 @@
 
+export const dynamic = "force-dynamic";
 import { getAppointments } from "@/data/appointment-repository";
 import { getPatients } from "@/data/patient-repository";
 import { getServices } from "@/data/service-repository";

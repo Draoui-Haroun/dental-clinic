@@ -134,7 +134,10 @@ export default function AppointmentForm({
             id="time"
             type="time"
             value={time}
-            onChange={(event) => setTime(event.target.value)}
+            onChange={(event) => {
+              console.log("TIME VALUE:", event.target.value);
+              setTime(event.target.value);
+            }}
             required
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
           />

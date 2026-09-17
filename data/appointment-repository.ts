@@ -35,8 +35,26 @@ export function getAppointments(): Appointment[] {
 }
 
 export function createAppointment(appointment: Appointment): void {
+  console.log("CREATING APPOINTMENT:", {
+    id: appointment.id,
+    patientId: appointment.patientId,
+    serviceId: appointment.serviceId,
+  });
+
+  console.log(
+    "PATIENT EXISTS:",
+    db.prepare("SELECT id FROM patients WHERE id = ?")
+      .get(appointment.patientId)
+  );
+
+  console.log(
+    "SERVICE EXISTS:",
+    db.prepare("SELECT id FROM services WHERE id = ?")
+      .get(appointment.serviceId)
+  );
+
   db.prepare(`
-    INSERT OR IGNORE INTO appointments (
+    INSERT INTO appointments (
       id,
       patient_id,
       service_id,

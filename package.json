@@ -11,6 +11,34 @@
     "electron": "electron electron/main.ts",
     "desktop": "electron electron/main.ts"
   },
+  "build": {
+    "appId": "com.dentalclinic.app",
+    "productName": "Cabinet Dentaire",
+    "directories": {
+      "output": "release"
+    },
+    "asarUnpack": [
+      ".next/standalone/**/*"
+    ],
+    "files": [
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "public/**/*",
+      "electron/**/*",
+      "electron-dist/**/*",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "electron-dist/main.js"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
@@ -19,6 +47,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.2.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^9.6.0",

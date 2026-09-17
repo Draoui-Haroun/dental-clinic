@@ -7,20 +7,29 @@ import http from "http";
 let nextProcess: ChildProcess | null = null;
 
 function startNextServer() {
-    const serverPath = path.join(
-        process.cwd(),
-        ".next",
-        "standalone",
-        "server.js"
+    const serverPath = app.isPackaged
+        ? path.join(
+            process.resourcesPath,
+            "app.asar.unpacked",
+            ".next",
+            "standalone",
+            "server.js"
+        )
+        : path.join(process.cwd(), ".next", "standalone", "server.js");
+
+    const databasePath = path.join(
+        app.getPath("userData"),
+        "database.db"
     );
+
+    console.log("SERVER PATH:", serverPath);
+    console.log("DATABASE PATH:", databasePath);
 
     nextProcess = spawn(process.execPath, [serverPath], {
         env: {
             ...process.env,
-            DENTAL_CLINIC_DB_PATH: path.join(
-                app.getPath("userData"),
-                "database.db"
-            ),
+            ELECTRON_RUN_AS_NODE: "1",
+            DENTAL_CLINIC_DB_PATH: databasePath,
             PORT: "3000",
             HOSTNAME: "127.0.0.1",
         },

@@ -43,6 +43,7 @@ export default function AppointmentsClient({
   const [showHistory, setShowHistory] = useState(false);
   const [showUpcoming, setShowUpcoming] = useState(false);
   const [showAllAppointments, setShowAllAppointments] = useState(false);
+  const [showLateAppointments, setShowLateAppointments] = useState(false);
 
   const [editingAppointmentId, setEditingAppointmentId] =
     useState<string | null>(null);
@@ -52,9 +53,7 @@ export default function AppointmentsClient({
     useState<"all" | Appointment["status"]>("all");
   const [dateFilter, setDateFilter] = useState("");
 
-  async function handleAddAppointment(
-    appointment: Appointment
-  ) {
+  async function handleAddAppointment(appointment: Appointment) {
     await addAppointment(appointment);
 
     setAppointments((currentAppointments) => [
@@ -640,19 +639,33 @@ export default function AppointmentsClient({
           {/* En retard */}
           {lateAppointments.length > 0 && (
             <section>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  En retard
-                </h2>
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    En retard
+                  </h2>
 
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {lateAppointments.length} rendez-vous en retard
-                </p>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {lateAppointments.length} rendez-vous en retard
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowLateAppointments((current) => !current)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                  {showLateAppointments
+                    ? "Masquer les rendez-vous"
+                    : "Afficher les rendez-vous"}
+                </button>
               </div>
 
-              <div className="space-y-4">
-                {lateAppointments.map(renderAppointment)}
-              </div>
+              {showLateAppointments && (
+                <div className="space-y-4">
+                  {lateAppointments.map(renderAppointment)}
+                </div>
+              )}
             </section>
           )}
 

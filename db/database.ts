@@ -7,6 +7,8 @@ const dbPath =
     process.env.DENTAL_CLINIC_DB_PATH ??
     path.join(process.cwd(), "db", "database.db");
 
+console.log("SQLITE DATABASE PATH:", dbPath);
+
 const dbDirectory = path.dirname(dbPath);
 
 if (!fs.existsSync(dbDirectory)) {
