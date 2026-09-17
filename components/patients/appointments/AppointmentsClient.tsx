@@ -12,6 +12,7 @@ import {
   changeAppointmentStatus,
   deleteAppointment,
 } from "@/app/(app)/appointments/actions";
+import Link from "next/link";
 
 function isAppointmentLate(appointment: Appointment) {
   if (appointment.status !== "scheduled") {
@@ -281,11 +282,18 @@ export default function AppointmentsClient({
             </div>
 
             <div>
-              <h2 className="font-semibold text-gray-900 dark:text-white">
-                {patient
-                  ? `${patient.firstName} ${patient.lastName}`
-                  : "Patient inconnu"}
-              </h2>
+              {patient ? (
+                <Link
+                  href={`/patients/${patient.id}`}
+                  className="font-semibold text-gray-900 hover:underline dark:text-white"
+                >
+                  {patient.firstName} {patient.lastName}
+                </Link>
+              ) : (
+                <h2 className="font-semibold text-gray-900 dark:text-white">
+                  Patient inconnu
+                </h2>
+              )}
 
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {service?.name ?? "Prestation inconnue"}

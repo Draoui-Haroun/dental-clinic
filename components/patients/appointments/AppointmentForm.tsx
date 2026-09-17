@@ -6,6 +6,7 @@ import type { Appointment, AppointmentStatus } from "@/types/appointments";
 import type { Patient } from "@/types/patients";
 import type { Service } from "@/types/services";
 
+
 type AppointmentFormProps = {
   patients: Patient[];
   services: Service[];
@@ -18,10 +19,18 @@ export default function AppointmentForm({
   onSubmit,
 }: AppointmentFormProps) {
   const [patientId, setPatientId] = useState("");
+  const [patientSearch, setPatientSearch] = useState("");
+  const [showPatientResults, setShowPatientResults] = useState(false);
   const [serviceId, setServiceId] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
+
+  const filteredPatients = patients.filter((patient) =>
+    `${patient.firstName} ${patient.lastName}`
+      .toLowerCase()
+      .includes(patientSearch.toLowerCase())
+  );
 
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>
@@ -42,6 +51,8 @@ export default function AppointmentForm({
     await onSubmit(appointment);
 
     setPatientId("");
+    setPatientSearch("");
+    setShowPatientResults(false);
     setServiceId("");
     setDate("");
     setTime("");
@@ -61,21 +72,50 @@ export default function AppointmentForm({
           Patient
         </label>
 
-        <select
-          id="patient"
-          value={patientId}
-          onChange={(event) => setPatientId(event.target.value)}
-          required
-          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
-        >
-          <option value="">Sélectionner un patient</option>
+        <div className="relative">
+          <input
+            id="patient"
+            type="text"
+            value={patientSearch}
+            onChange={(event) => {
+              setPatientSearch(event.target.value);
+              setShowPatientResults(true);
+              setPatientId("");
+            }}
+            onFocus={() => setShowPatientResults(true)}
+            placeholder="Rechercher un patient..."
+            autoComplete="off"
+            required={!patientId}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
+          />
 
-          {patients.map((patient) => (
-            <option key={patient.id} value={patient.id}>
-              {patient.firstName} {patient.lastName}
-            </option>
-          ))}
-        </select>
+          {showPatientResults && patientSearch && (
+            <div className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+              {filteredPatients.length > 0 ? (
+                filteredPatients.map((patient) => (
+                  <button
+                    key={patient.id}
+                    type="button"
+                    onClick={() => {
+                      setPatientId(patient.id);
+                      setPatientSearch(
+                        `${patient.firstName} ${patient.lastName}`
+                      );
+                      setShowPatientResults(false);
+                    }}
+                    className="block w-full px-4 py-3 text-left text-sm text-gray-900 hover:bg-gray-50"
+                  >
+                    {patient.firstName} {patient.lastName}
+                  </button>
+                ))
+              ) : (
+                <p className="px-4 py-3 text-sm text-gray-500">
+                  Aucun patient trouvé.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
@@ -138,7 +178,6 @@ export default function AppointmentForm({
               console.log("TIME VALUE:", event.target.value);
               setTime(event.target.value);
             }}
-            required
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-100"
           />
         </div>

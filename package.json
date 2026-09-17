@@ -32,7 +32,8 @@
       "main": "electron-dist/main.js"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "public/dental_app_icon.ico"
     },
     "nsis": {
       "oneClick": false,

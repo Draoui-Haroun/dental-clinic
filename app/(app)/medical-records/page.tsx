@@ -2,6 +2,7 @@
 import { getMedicalRecords } from "@/data/medical-record-repository";
 import { getPatients } from "@/data/patient-repository";
 import { getAppointments } from "@/data/appointment-repository";
+import Link from "next/link";
 
 export default function MedicalRecordsPage() {
   const records = getMedicalRecords();
@@ -27,11 +28,18 @@ export default function MedicalRecordsPage() {
               key={record.id}
               className="rounded-xl border p-4 shadow-sm"
             >
-              <h2 className="font-semibold">
-                {patient
-                  ? `${patient.firstName} ${patient.lastName}`
-                  : "Unknown patient"}
-              </h2>
+              {patient ? (
+                <Link
+                  href={`/patients/${patient.id}`}
+                  className="font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                >
+                  {patient.firstName} {patient.lastName}
+                </Link>
+              ) : (
+                <h2 className="font-semibold">
+                  Unknown patient
+                </h2>
+              )}
 
               <p className="mt-2">
                 Diagnosis: {record.diagnosis}

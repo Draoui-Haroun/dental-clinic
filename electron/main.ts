@@ -59,10 +59,11 @@ function createWindow() {
         height: 900,
         minWidth: 1100,
         minHeight: 700,
+        autoHideMenuBar: true,
     });
+    win.setMenuBarVisibility(false);
 
     win.loadURL("http://127.0.0.1:3000/entry");
-    win.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {

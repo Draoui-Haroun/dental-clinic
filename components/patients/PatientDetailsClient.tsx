@@ -11,9 +11,8 @@ import { addMedicalRecord, editMedicalRecord, deleteMedicalRecord } from "@/app/
 import { useRouter } from "next/navigation";
 import { deletePatient, addPatientNote, editPatientNote, removePatientNote } from "@/app/(app)/patients/actions";
 import type { PatientNote } from "@/data/patient-note-repository";
-import {
-
-} from "@/app/(app)/patients/actions";
+import type { Payment } from "@/data/payment-repository";
+import { addPayment, editPayment, removePayment } from "@/app/actions/payment-actions";
 
 type PatientDetailsClientProps = {
   patient: Patient;
@@ -21,6 +20,7 @@ type PatientDetailsClientProps = {
   appointments: Appointment[];
   services: Service[];
   notes: PatientNote[];
+  payments: Payment[]
 };
 
 export default function PatientDetailsClient({
@@ -29,6 +29,7 @@ export default function PatientDetailsClient({
   appointments,
   services,
   notes,
+  payments,
 }: PatientDetailsClientProps) {
   const [medicalRecords, setMedicalRecords] = useState(
     initialMedicalRecords
@@ -42,6 +43,49 @@ export default function PatientDetailsClient({
 
   const [patientNotes, setPatientNotes] =
     useState<PatientNote[]>(notes);
+
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [paymentAppointmentId, setPaymentAppointmentId] = useState("");
+  const [paymentNotes, setPaymentNotes] = useState("");
+  const [paymentError, setPaymentError] = useState("");
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(
+    null
+  );
+
+  const totalServices = appointments.reduce((total, appointment) => {
+    if (appointment.status !== "completed") {
+      return total;
+    }
+
+    const service = services.find(
+      (service) => service.id === appointment.serviceId
+    );
+
+    return total + (service?.price ?? 0);
+  }, 0);
+
+  const totalPaid = payments.reduce(
+    (total, payment) => total + payment.amount,
+    0
+  );
+
+  const remainingAmount = Math.max(
+    totalServices - totalPaid,
+    0
+  );
+
+  const paymentStatus =
+    totalServices === 0
+      ? "unpaid"
+      : totalPaid === 0
+        ? "unpaid"
+        : totalPaid >= totalServices
+          ? "paid"
+          : "partial";
 
   const [newNote, setNewNote] = useState("");
 
@@ -130,6 +174,10 @@ export default function PatientDetailsClient({
     return new Intl.DateTimeFormat("fr-FR").format(
       new Date(date)
     );
+  }
+
+  function formatPrice(amount: number) {
+    return new Intl.NumberFormat("fr-FR").format(amount) + " DA";
   }
 
   const router = useRouter();
@@ -227,6 +275,111 @@ export default function PatientDetailsClient({
         (note) => note.id !== id
       )
     );
+  }
+
+  async function handleAddPayment() {
+    const amount = Number(paymentAmount);
+
+    setPaymentError("");
+
+    if (!amount || amount <= 0) {
+      setPaymentError("Veuillez saisir un montant valide.");
+      return;
+    }
+
+    if (totalServices <= 0) {
+      setPaymentError(
+        "Aucune prestation terminée ne peut être facturée pour le moment."
+      );
+      return;
+    }
+
+    const editingPayment = editingPaymentId
+      ? payments.find((payment) => payment.id === editingPaymentId)
+      : undefined;
+
+    const paidWithoutEditingPayment =
+      totalPaid - (editingPayment?.amount ?? 0);
+
+    const maxAllowedAmount =
+      totalServices - paidWithoutEditingPayment;
+
+    if (amount > maxAllowedAmount) {
+      setPaymentError(
+        "Le montant ne peut pas dépasser le reste à payer."
+      );
+      return;
+    }
+
+    if (editingPayment) {
+      const payment: Payment = {
+        ...editingPayment,
+        appointmentId: paymentAppointmentId || undefined,
+        amount,
+        paymentDate,
+        notes: paymentNotes.trim() || undefined,
+      };
+
+      await editPayment(payment);
+    } else {
+      const payment: Payment = {
+        id: crypto.randomUUID(),
+        patientId: patient.id,
+        appointmentId: paymentAppointmentId || undefined,
+        amount,
+        paymentDate,
+        notes: paymentNotes.trim() || undefined,
+        createdAt: new Date().toISOString(),
+      };
+
+      await addPayment(payment);
+    }
+
+    setShowPaymentForm(false);
+    setEditingPaymentId(null);
+    setPaymentAmount("");
+    setPaymentDate(new Date().toISOString().slice(0, 10));
+    setPaymentAppointmentId("");
+    setPaymentNotes("");
+    setPaymentError("");
+
+    router.refresh();
+  }
+
+  function handleEditPayment(payment: Payment) {
+    setEditingPaymentId(payment.id);
+    setPaymentAmount(String(payment.amount));
+    setPaymentDate(payment.paymentDate);
+    setPaymentAppointmentId(payment.appointmentId ?? "");
+    setPaymentNotes(payment.notes ?? "");
+    setPaymentError("");
+    setShowPaymentForm(true);
+  }
+
+  async function handleDeletePayment(id: string) {
+    const confirmed = window.confirm(
+      "Voulez-vous vraiment supprimer ce paiement ?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    await removePayment(id);
+
+    router.refresh();
+  }
+
+  function getPaymentStatusLabel() {
+    if (paymentStatus === "paid") {
+      return "Payé";
+    }
+
+    if (paymentStatus === "partial") {
+      return "Partiellement payé";
+    }
+
+    return "Non payé";
   }
 
   return (
@@ -357,6 +510,334 @@ export default function PatientDetailsClient({
             </p>
           </div>
         </div>
+      </section>
+
+      <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-6 mb-8">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Situation financière
+          </h2>
+
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Résumé des prestations et des paiements du patient.
+          </p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Financial summary */}
+          <div className="space-y-4">
+            <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Total des prestations
+              </p>
+
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {formatPrice(totalServices)}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Total payé
+              </p>
+
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {formatPrice(totalPaid)}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Reste à payer
+              </p>
+
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {formatPrice(remainingAmount)}
+                </p>
+
+                <span
+                  className={`rounded-full border px-3 py-1 text-xs font-medium ${paymentStatus === "paid"
+                    ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400"
+                    : paymentStatus === "partial"
+                      ? "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-400"
+                      : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400"
+                    }`}
+                >
+                  {getPaymentStatusLabel()}
+                </span>
+              </div>
+
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+                {formatPrice(remainingAmount)}
+              </p>
+            </div>
+          </div>
+
+          {/* Payment history */}
+          <div>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Historique des paiements
+                </h3>
+
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Liste des paiements enregistrés pour ce patient.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPaymentForm((current) => !current)
+                }
+                className="w-fit rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
+              >
+                {showPaymentForm
+                  ? "Fermer"
+                  : "+ Ajouter un paiement"}
+              </button>
+            </div>
+
+            {
+              showPaymentForm && (
+                <div className="mb-6 rounded-xl border border-gray-200 p-5 dark:border-gray-800">
+                  <div className="mb-5">
+                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                      Nouveau paiement
+                    </h4>
+
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      Enregistrez un paiement effectué par le patient.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="payment-amount"
+                        className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Montant
+                      </label>
+
+                      <div className="relative">
+                        <input
+                          id="payment-amount"
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={paymentAmount}
+                          onChange={(event) =>
+                            setPaymentAmount(event.target.value)
+                          }
+                          placeholder="Ex. 5000"
+                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-gray-500 dark:focus:ring-gray-700"
+                        />
+
+                        {paymentError && (
+                          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {paymentError}
+                          </p>
+                        )}
+
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                          DA
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="payment-date"
+                        className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Date du paiement
+                      </label>
+
+                      <input
+                        id="payment-date"
+                        type="date"
+                        value={paymentDate}
+                        onChange={(event) =>
+                          setPaymentDate(event.target.value)
+                        }
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-gray-500 dark:focus:ring-gray-700"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="payment-appointment"
+                        className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Rendez-vous
+                      </label>
+
+                      <select
+                        id="payment-appointment"
+                        value={paymentAppointmentId}
+                        onChange={(event) =>
+                          setPaymentAppointmentId(event.target.value)
+                        }
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-gray-500 dark:focus:ring-gray-700"
+                      >
+                        <option value="">
+                          Aucun rendez-vous
+                        </option>
+
+                        {appointments.map((appointment) => {
+                          const service = services.find(
+                            (service) =>
+                              service.id === appointment.serviceId
+                          );
+
+                          return (
+                            <option
+                              key={appointment.id}
+                              value={appointment.id}
+                            >
+                              {formatDate(appointment.date)} à{" "}
+                              {appointment.time} —{" "}
+                              {service?.name || "Prestation inconnue"}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label
+                        htmlFor="payment-notes"
+                        className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Notes
+                      </label>
+
+                      <textarea
+                        id="payment-notes"
+                        value={paymentNotes}
+                        onChange={(event) =>
+                          setPaymentNotes(event.target.value)
+                        }
+                        rows={3}
+                        placeholder="Ex. Paiement partiel..."
+                        className="w-full resize-y rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-gray-500 dark:focus:ring-gray-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddPayment}
+                      disabled={
+                        !paymentAmount ||
+                        Number(paymentAmount) <= 0 ||
+                        !paymentDate
+                      }
+                      className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
+                    >
+                      {editingPaymentId ? "Modifier le paiement" : "Enregistrer le paiement"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPaymentForm(false);
+                        setEditingPaymentId(null);
+                        setPaymentAmount("");
+                        setPaymentDate(new Date().toISOString().slice(0, 10));
+                        setPaymentAppointmentId("");
+                        setPaymentNotes("");
+                        setPaymentError("");
+                      }}
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              )
+            }
+
+            {payments.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center dark:border-gray-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Aucun paiement enregistré.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+                <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {payments.map((payment) => {
+                    const appointment = payment.appointmentId
+                      ? appointments.find(
+                        (appointment) =>
+                          appointment.id === payment.appointmentId
+                      )
+                      : undefined;
+
+                    return (
+                      <div
+                        key={payment.id}
+                        className="flex flex-col gap-3 p-4"
+                      >
+                        <div
+                          key={payment.id}
+                          className="flex flex-col gap-3 p-4"
+                        >
+                          <div>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {formatPrice(payment.amount)}
+                              </p>
+
+                              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {formatDate(payment.paymentDate)}
+                              </p>
+
+                              {appointment && (
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                  Rendez-vous du {formatDate(appointment.date)}
+                                </p>
+                              )}
+
+                              {payment.notes && (
+                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                                  {payment.notes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleEditPayment(payment)}
+                              className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePayment(payment.id)}
+                              className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            >
+                              Supprimer
+                            </button>
+
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
       </section>
 
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -501,6 +982,8 @@ export default function PatientDetailsClient({
                         >
                           Supprimer
                         </button>
+
+
                       </div>
                     </>
                   )}
@@ -748,3 +1231,35 @@ export default function PatientDetailsClient({
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

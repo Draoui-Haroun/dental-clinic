@@ -124,7 +124,7 @@ export default function Home() {
 
           <Link
             href="/appointments"
-            className="w-fit rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+            className="shrink-0 text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline dark:text-gray-400 dark:hover:text-white"
           >
             + Nouveau rendez-vous
           </Link>
@@ -370,12 +370,12 @@ export default function Home() {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div className="divide-y divide-gray-100">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div className="divide-y divide-gray-800">
               {upcomingAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="flex flex-col gap-4 p-5 transition hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 p-5 transition hover:bg-gray-50 dark:hover:bg-gray-800 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700">

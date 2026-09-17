@@ -60,3 +60,15 @@ CREATE TABLE IF NOT EXISTS app_auth (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   password_hash TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS payments (
+  id TEXT PRIMARY KEY,
+  patient_id TEXT NOT NULL,
+  appointment_id TEXT,
+  amount INTEGER NOT NULL CHECK (amount > 0),
+  payment_date TEXT NOT NULL,
+  notes TEXT,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (patient_id) REFERENCES patients(id),
+  FOREIGN KEY (appointment_id) REFERENCES appointments(id)
+);

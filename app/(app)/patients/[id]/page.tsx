@@ -7,6 +7,7 @@ import { getServices } from "@/data/service-repository";
 import { notFound } from "next/navigation";
 import PatientDetailsClient from "@/components/patients/PatientDetailsClient";
 import { getNotesByPatientId } from "@/data/patient-note-repository";
+import { getPaymentsByPatientId } from "@/data/payment-repository";
 
 export default async function PatientDetailsPage({ params }: { params: Promise<{ id: string }>; }) {
   const { id } = await params;
@@ -18,6 +19,7 @@ export default async function PatientDetailsPage({ params }: { params: Promise<{
   }
 
   const notes = getNotesByPatientId(id);
+  const payments = getPaymentsByPatientId(id);
 
   const medicalRecords = getMedicalRecords();
   const appointments = getAppointments();
@@ -38,6 +40,7 @@ export default async function PatientDetailsPage({ params }: { params: Promise<{
       appointments={patientAppointments}
       services={services}
       notes={notes}
+      payments={payments}
     />
   );
 }
