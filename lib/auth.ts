@@ -9,10 +9,12 @@ export async function createSession() {
 
   cookieStore.set(SESSION_COOKIE, "authenticated", {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "lax",
     secure: false,
     path: "/",
   });
+
+  console.log("SESSION CREATED:", cookieStore.get(SESSION_COOKIE));
 }
 
 export async function hasSession(): Promise<boolean> {

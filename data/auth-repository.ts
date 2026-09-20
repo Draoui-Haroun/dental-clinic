@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/db/database";
 
 export function hasPassword(): boolean {
+  console.log("AUTH DB CHECK:", db.name);
   const row = db
     .prepare("SELECT id FROM app_auth WHERE id = 1")
     .get();

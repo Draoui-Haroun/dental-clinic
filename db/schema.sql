@@ -61,6 +61,12 @@ CREATE TABLE IF NOT EXISTS app_auth (
   password_hash TEXT NOT NULL
 );
 
+INSERT OR IGNORE INTO app_auth (id, password_hash)
+VALUES (
+  1,
+  '$2b$12$tfaxisWtFMVeu2TfFBWbCOOWjeSRpdLzky8oPMIqWe37VLHsHXO3m'
+);
+
 CREATE TABLE IF NOT EXISTS payments (
   id TEXT PRIMARY KEY,
   patient_id TEXT NOT NULL,

@@ -26,6 +26,11 @@ const navigation = [
     href: "/services",
     icon: "🦷",
   },
+  {
+    name: "Paramètres",
+    href: "/settings",
+    icon: "⚙️",
+  },
 ];
 
 export default function Sidebar() {
@@ -117,13 +122,6 @@ export default function Sidebar() {
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Gestion locale
             </p>
-
-            <Link
-              href="/settings/password"
-              className="mt-3 block w-full rounded-lg border border-gray-200 px-3 py-2 text-center text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-            >
-              Changer le mot de passe
-            </Link>
 
             <button
               type="button"

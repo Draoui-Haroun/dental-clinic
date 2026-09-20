@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 export default async function EntryPage() {
     const passwordConfigured = hasPassword();
+    console.log("ENTRY PASSWORD CONFIGURED:", passwordConfigured);
     if (!passwordConfigured) { redirect("/setup"); }
 
     const authenticated = await hasSession();

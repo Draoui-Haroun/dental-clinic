@@ -29,9 +29,9 @@ export async function setupPassword(
   };
 }
 
-export async function login(
-  password: string
-): Promise<{ success: boolean; message: string }> {
+export async function login(password: string): Promise<{ success: boolean; message: string }> {
+
+  console.log("LOGIN ACTION CALLED");
   if (!hasPassword()) {
     return {
       success: false,
@@ -47,6 +47,9 @@ export async function login(
       message: "Mot de passe incorrect.",
     };
   }
+
+  console.log("PASSWORD VALID");
+
   await createSession();
   redirect("/");
 }

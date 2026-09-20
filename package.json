@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run copy-static",
+    "copy-static": "node scripts/copy-static.mjs",
     "start": "next start",
     "lint": "eslint",
-    "electron": "electron electron/main.ts",
-    "desktop": "electron electron/main.ts"
+    "electron": "electron electron-dist/main.js",
+    "desktop": "electron electron-dist/main.js"
   },
   "build": {
     "appId": "com.dentalclinic.app",
@@ -18,7 +19,8 @@
       "output": "release"
     },
     "asarUnpack": [
-      ".next/standalone/**/*"
+      ".next/standalone/**/*",
+      "db/schema.sql"
     ],
     "files": [
       ".next/standalone/**/*",
@@ -26,7 +28,8 @@
       "public/**/*",
       "electron/**/*",
       "electron-dist/**/*",
-      "package.json"
+      "package.json",
+      "db/schema.sql"
     ],
     "extraMetadata": {
       "main": "electron-dist/main.js"
