@@ -78,3 +78,28 @@ CREATE TABLE IF NOT EXISTS payments (
   FOREIGN KEY (patient_id) REFERENCES patients(id),
   FOREIGN KEY (appointment_id) REFERENCES appointments(id)
 );
+
+CREATE TABLE IF NOT EXISTS ordonnances (
+  id TEXT PRIMARY KEY,
+  patient_id TEXT NOT NULL,
+  date TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (patient_id) REFERENCES patients(id)
+);
+
+CREATE TABLE IF NOT EXISTS medicines (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS prescription_items (
+  id TEXT PRIMARY KEY,
+  ordonnance_id TEXT NOT NULL,
+  medicine_id TEXT NOT NULL,
+  dosage TEXT,
+  posology TEXT,
+  duration TEXT,
+  FOREIGN KEY (ordonnance_id) REFERENCES ordonnances(id),
+  FOREIGN KEY (medicine_id) REFERENCES medicines(id)
+);

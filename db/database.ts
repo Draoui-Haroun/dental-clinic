@@ -27,4 +27,3 @@ console.log("SCHEMA PATH USED:", schemaPath);
 
 const schema = fs.readFileSync(schemaPath, "utf-8");
 db.exec(schema);
-

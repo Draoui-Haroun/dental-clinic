@@ -120,16 +120,31 @@ export function deletePatientById(id: string): boolean {
       return false;
     }
 
+    // Delete medical records first
     db.prepare(`
       DELETE FROM medical_records
       WHERE patient_id = ?
     `).run(id);
 
+    // Delete payments linked to the patient
+    db.prepare(`
+      DELETE FROM payments
+      WHERE patient_id = ?
+    `).run(id);
+
+    // Delete appointments
     db.prepare(`
       DELETE FROM appointments
       WHERE patient_id = ?
     `).run(id);
 
+    // Delete patient notes
+    db.prepare(`
+      DELETE FROM patient_notes
+      WHERE patient_id = ?
+    `).run(id);
+
+    // Finally delete the patient
     const result = db
       .prepare(`
         DELETE FROM patients

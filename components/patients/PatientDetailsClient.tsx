@@ -13,6 +13,10 @@ import { deletePatient, addPatientNote, editPatientNote, removePatientNote } fro
 import type { PatientNote } from "@/data/patient-note-repository";
 import type { Payment } from "@/data/payment-repository";
 import { addPayment, editPayment, removePayment } from "@/app/actions/payment-actions";
+import type { OrdonnanceWithItems } from "@/data/ordonnance-repository";
+import type { Medicine } from "@/types/medicines";
+import OrdonnanceForm from "@/components/patients/ordonnances/OrdonnanceForm";
+import { deleteOrdonnance } from "@/app/ordonnances/actions";
 
 type PatientDetailsClientProps = {
   patient: Patient;
@@ -20,7 +24,9 @@ type PatientDetailsClientProps = {
   appointments: Appointment[];
   services: Service[];
   notes: PatientNote[];
-  payments: Payment[]
+  payments: Payment[];
+  ordonnances: OrdonnanceWithItems[];
+  medicines: Medicine[];
 };
 
 export default function PatientDetailsClient({
@@ -30,19 +36,18 @@ export default function PatientDetailsClient({
   services,
   notes,
   payments,
+  ordonnances,
+  medicines,
 }: PatientDetailsClientProps) {
   const [medicalRecords, setMedicalRecords] = useState(
     initialMedicalRecords
   );
 
-  const [showRecordForm, setShowRecordForm] =
-    useState(false);
+  const [showRecordForm, setShowRecordForm] = useState(false);
 
-  const [editingRecordId, setEditingRecordId] =
-    useState<string | null>(null);
+  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
 
-  const [patientNotes, setPatientNotes] =
-    useState<PatientNote[]>(notes);
+  const [patientNotes, setPatientNotes] = useState<PatientNote[]>(notes);
 
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -52,9 +57,11 @@ export default function PatientDetailsClient({
   const [paymentAppointmentId, setPaymentAppointmentId] = useState("");
   const [paymentNotes, setPaymentNotes] = useState("");
   const [paymentError, setPaymentError] = useState("");
-  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(
-    null
-  );
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
+  const [showOrdonnanceForm, setShowOrdonnanceForm] = useState(false);
+  const [expandedPaymentId, setExpandedPaymentId] = useState<string | null>(null);
+  const [showAllPayments, setShowAllPayments] = useState(false);
+  const [showAllAppointments, setShowAllAppointments] = useState(false);
 
   const totalServices = appointments.reduce((total, appointment) => {
     if (appointment.status !== "completed") {
@@ -382,6 +389,21 @@ export default function PatientDetailsClient({
     return "Non payé";
   }
 
+  const displayedPayments = showAllPayments
+    ? payments
+    : payments.slice(0, 5);
+
+  const sortedAppointments = [...appointments].sort((a, b) => {
+    const dateA = new Date(`${a.date}T${a.time || "00:00"}`).getTime();
+    const dateB = new Date(`${b.date}T${b.time || "00:00"}`).getTime();
+
+    return dateB - dateA;
+  });
+
+  const displayedAppointments = showAllAppointments
+    ? sortedAppointments
+    : sortedAppointments.slice(0, 5);
+
   return (
     <main className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 dark:bg-gray-950">
 
@@ -567,10 +589,6 @@ export default function PatientDetailsClient({
                   {getPaymentStatusLabel()}
                 </span>
               </div>
-
-              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-                {formatPrice(remainingAmount)}
-              </p>
             </div>
           </div>
 
@@ -770,7 +788,7 @@ export default function PatientDetailsClient({
             ) : (
               <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
                 <div className="divide-y divide-gray-200 dark:divide-gray-800">
-                  {payments.map((payment) => {
+                  {displayedPayments.map((payment) => {
                     const appointment = payment.appointmentId
                       ? appointments.find(
                         (appointment) =>
@@ -778,60 +796,94 @@ export default function PatientDetailsClient({
                       )
                       : undefined;
 
+                    const isExpanded = expandedPaymentId === payment.id;
+
                     return (
                       <div
                         key={payment.id}
-                        className="flex flex-col gap-3 p-4"
+                        className="border-b border-gray-200 last:border-b-0 dark:border-gray-800"
                       >
-                        <div
-                          key={payment.id}
-                          className="flex flex-col gap-3 p-4"
-                        >
-                          <div>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-white">
-                                {formatPrice(payment.amount)}
-                              </p>
+                        <div className="flex items-center justify-between gap-4 p-4">
+                          <p className="font-medium text-gray-900 dark:text-white">
+                            {formatPrice(payment.amount)}
+                          </p>
 
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedPaymentId(
+                                isExpanded ? null : payment.id
+                              )
+                            }
+                            className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                          >
+                            {isExpanded ? "Voir moins" : "Voir plus"}
+                          </button>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="border-t border-gray-200 p-4 dark:border-gray-800">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Date : {formatDate(payment.paymentDate)}
+                            </p>
+
+                            {appointment && (
                               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                {formatDate(payment.paymentDate)}
+                                Rendez-vous du {formatDate(appointment.date)}
+                                {appointment.time && ` à ${appointment.time}`}
+                                {appointment.serviceId && (
+                                  <>
+                                    {" — "}
+                                    {services.find(
+                                      (service) =>
+                                        service.id === appointment.serviceId
+                                    )?.name || "Prestation inconnue"}
+                                  </>
+                                )}
                               </p>
+                            )}
 
-                              {appointment && (
-                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                  Rendez-vous du {formatDate(appointment.date)}
-                                </p>
-                              )}
+                            {payment.notes && (
+                              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                                {payment.notes}
+                              </p>
+                            )}
 
-                              {payment.notes && (
-                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                  {payment.notes}
-                                </p>
-                              )}
+                            <div className="mt-4 flex gap-4">
+                              <button
+                                type="button"
+                                onClick={() => handleEditPayment(payment)}
+                                className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                              >
+                                Modifier
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePayment(payment.id)}
+                                className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                              >
+                                Supprimer
+                              </button>
                             </div>
                           </div>
-
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleEditPayment(payment)}
-                              className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                            >
-                              Modifier
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeletePayment(payment.id)}
-                              className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                            >
-                              Supprimer
-                            </button>
-
-                          </div>
-                        </div>
+                        )}
                       </div>
                     );
                   })}
+                  {payments.length > 5 && (
+                    <div className="border-t border-gray-200 p-4 text-center dark:border-gray-800">
+                      <button
+                        type="button"
+                        onClick={() => setShowAllPayments((current) => !current)}
+                        className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      >
+                        {showAllPayments
+                          ? "Afficher moins"
+                          : `Afficher tous les paiements (${payments.length})`}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -992,6 +1044,110 @@ export default function PatientDetailsClient({
             })
           )}
         </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Ordonnances
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Historique des ordonnances du patient.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              setShowOrdonnanceForm((current) => !current)
+            }
+            className="w-fit rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+          >
+            {showOrdonnanceForm
+              ? "Fermer"
+              : "+ Nouvelle ordonnance"}
+          </button>
+        </div>
+
+        {showOrdonnanceForm && (
+          <div className="mb-6">
+            <OrdonnanceForm
+              patientId={patient.id}
+              medicines={medicines}
+              onCancel={() =>
+                setShowOrdonnanceForm(false)
+              }
+              onSaved={() => {
+                setShowOrdonnanceForm(false);
+                window.location.reload();
+              }}
+            />
+          </div>
+        )}
+        {ordonnances.length === 0 ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-6 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+            Aucune ordonnance pour ce patient.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {ordonnances.map((ordonnance) => (
+              <div
+                key={ordonnance.id}
+                className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+              >
+                <p className="font-medium text-gray-900 dark:text-white">
+                  Ordonnance du{" "}
+                  {new Intl.DateTimeFormat("fr-FR").format(
+                    new Date(ordonnance.date)
+                  )}
+                </p>
+
+                <div className="mt-4 space-y-2">
+                  {ordonnance.items.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800"
+                    >
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {index + 1}. {item.medicine_name}
+                      </p>
+                    </div>
+                  ))}
+                  <div className="mt-4 flex gap-2 border-t border-gray-200 pt-4 dark:border-gray-800">
+                    <Link
+                      href={`/ordonnances/${ordonnance.id}`}
+                      className="inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+                    >
+                      Voir / Imprimer
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const confirmed = window.confirm(
+                          "Voulez-vous vraiment supprimer cette ordonnance ?"
+                        );
+
+                        if (!confirmed) {
+                          return;
+                        }
+
+                        await deleteOrdonnance(ordonnance.id);
+
+                        window.location.reload();
+                      }}
+                      className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="mt-6">
@@ -1181,7 +1337,7 @@ export default function PatientDetailsClient({
           </div>
         ) : (
           <div className="space-y-3">
-            {appointments.map((appointment) => {
+            {displayedAppointments.map((appointment) => {
               const service = services.find(
                 (service) =>
                   service.id ===
@@ -1225,41 +1381,24 @@ export default function PatientDetailsClient({
                 </div>
               );
             })}
+            {appointments.length > 5 && (
+              <div className="border-t border-gray-200 p-4 text-center dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowAllAppointments((current) => !current)
+                  }
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                >
+                  {showAllAppointments
+                    ? "Afficher moins"
+                    : `Afficher tous les rendez-vous (${appointments.length})`}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </section>
     </main>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

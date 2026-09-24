@@ -86,7 +86,10 @@ export default function Sidebar() {
               const isActive =
                 item.href === "/"
                   ? pathname === "/"
-                  : pathname.startsWith(item.href);
+                  : item.href === "/services"
+                    ? pathname.startsWith("/services") ||
+                    pathname.startsWith("/medicines")
+                    : pathname.startsWith(item.href);
 
               return (
                 <Link

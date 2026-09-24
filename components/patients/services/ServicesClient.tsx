@@ -8,6 +8,8 @@ import {
   editService,
   deleteService,
 } from "@/app/(app)/services/actions";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type ServicesClientProps = {
   initialServices: Service[];
@@ -16,17 +18,11 @@ type ServicesClientProps = {
 export default function ServicesClient({
   initialServices,
 }: ServicesClientProps) {
-  const [services, setServices] =
-    useState(initialServices);
-
-  const [showForm, setShowForm] =
-    useState(false);
-
-  const [editingServiceId, setEditingServiceId] =
-    useState<string | null>(null);
-
-  const [error, setError] =
-    useState<string | null>(null);
+  const [services, setServices] = useState(initialServices);
+  const pathname = usePathname();
+  const [showForm, setShowForm] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleAddService(
     service: Service
@@ -98,6 +94,28 @@ export default function ServicesClient({
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 dark:bg-gray-950">
+      <div className="mb-6 flex gap-2 border-b border-gray-200 dark:border-gray-800">
+        <Link
+          href="/services"
+          className={`rounded-t-lg px-4 py-2.5 text-sm font-medium transition ${pathname === "/services"
+              ? "bg-gray-900 text-white"
+              : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+            }`}
+        >
+          Prestations
+        </Link>
+
+        <Link
+          href="/medicines"
+          className={`rounded-t-lg px-4 py-2.5 text-sm font-medium transition ${pathname === "/medicines"
+              ? "bg-gray-900 text-white"
+              : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+            }`}
+        >
+          Médicaments
+        </Link>
+      </div>
+
       {/* Header */}
       <section className="mb-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
