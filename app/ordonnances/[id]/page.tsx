@@ -1,6 +1,7 @@
 
 import { getOrdonnanceDetailsById } from "@/data/ordonnance-repository";
 import PrintButton from "@/components/ordonnances/PrintButton";
+import Link from "next/link";
 
 type OrdonnancePageProps = {
     params: Promise<{
@@ -55,7 +56,16 @@ export default async function OrdonnancePage({
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-100 p-6 dark:bg-gray-950 print:block print:min-h-0 print:p-0">
-            <PrintButton />
+            <div className="flex items-center gap-3 print:hidden">
+                <Link
+                    href={`/patients/${ordonnance.patient.id}`}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                    ← Retour au patient
+                </Link>
+
+                <PrintButton />
+            </div>
 
             <div
                 className="relative h-[210mm] w-[148mm] shrink-0 bg-white bg-center bg-no-repeat print:h-[210mm] print:w-[148mm]"
